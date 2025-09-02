@@ -123,4 +123,71 @@ __python processing_data.py data/raw_lattices/ data/processed/ 0.8 0.2 minmax --
 
 Recomendación: variar los parámetros en el script y ejecutar solo con __python processing_data.py__
 
+## Full_model_fss_encoder_based.py
+
+Entrenamiento del encoder basado en GAT (Graph Attention Network) para la generación de representaciones latentes de estructuras de lattice.
+
+__python full_model_fss_encoder_based.py [--epochs EPOCHS] [--batch_size BATCH_SIZE]__
+
+#### Para cambiar la dimensión latente cambiar latent_dim en el script
+
+__1. --epochs (opcional)__
+
+Descripción: Número de épocas de entrenamiento del modelo.
+
+Valor por defecto: 201
+
+Ejemplo: --epochs 300
+
+__2. --batch_size (opcional)__
+
+Descripción: Tamaño de cada batch de entrenamiento.
+
+Valor por defecto: 32
+
+Ejemplo: --batch_size 64
+
+Ejemplo de ejecución completo:
+
+__python full_encoder_based.py --epochs 250 --batch_size 64__
+
+## Full_model_fss_decoder.py
+
+Script que entrena el decoder de nodos para reconstruir las coordenadas 3D de los lattices a partir del espacio latente generado por el encoder. Utiliza un encoder previamente entrenado (best_encoder_predictor_nopool.pth) congelado durante el entrenamiento.
+
+__python full_decoder_based.py [--latent_dim N] [--batch_size N] [--num_epochs N]__
+
+__1. --latent_dim (opcional)__
+
+Descripción: Dimensión del espacio latente que recibe el decoder como entrada.
+
+Valor por defecto: 32
+_IMPORTANTE: usar el mismo valor que el encoder_
+
+__2. --batch_size (opcional)__
+
+Descripción: Número de lattices procesados en cada batch durante el entrenamiento.
+
+Valor por defecto: 32
+_IMPORTANTE: usar el mismo valor que el encoder_
+
+__3. --num_epochs (opcional)__
+
+Descripción: Número de épocas de entrenamiento del decoder.
+
+Valor por defecto: 301
+
+Características adicionales
+
+Guarda el mejor modelo en best_decoder_dual.pth según el MSE promedio.
+
+Registra métricas (MSE, MAE, porcentaje de nodos con error <2%) en un archivo CSV definido por METRIC_CSV.
+
+Cada 10 épocas, genera visualizaciones de reconstrucción para los primeros 3 lattices del batch de prueba mediante plot_reconstruction.
+
+
+Ejemplo de ejecución completo:
+
+__python full_decoder_based.py --latent_dim 32 --batch_size 32 --num_epochs 301__
+
 
