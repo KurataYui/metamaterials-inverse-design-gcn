@@ -55,9 +55,36 @@ Descripción: Número máximo de nodos por lattice
 Valor por defecto: 50
 
 __7. update_batch (opcional)__
+
 Descripción: Número de lattices guardados en cada operación de escritura
 
 Valor por defecto: 50000
+
+Características adicionales:
+
+num_samples: Número de ejemplos a generar (por defecto: 50000).
+
+min_e_eq: Límite inferior para el módulo de Young equivalente (por defecto: 80000000.00).
+
+max_e_eq: Límite superior para el módulo de Young equivalente (por defecto: 120000000.00).
+
+cpu_fraction: Fracción de potencia de CPU utilizada (0.0 a 1.0; por defecto: 0.4).
+
+min_nodes: Número mínimo de nodos por lattice (por defecto: 10).
+
+max_nodes: Número máximo de nodos por lattice (por defecto: 50).
+
+update_batch: Número de lattices guardados en cada operación de escritura (por defecto: 50000).
+
+--output_dir: Carpeta donde se guardarán los lattices generados (por defecto: data/lattices/).
+
+--use_pickle: Si se debe usar pickle para guardar los lattices (por defecto: True).
+
+--plot_lattice: Si se deben generar visualizaciones de los lattices (por defecto: False).
+
+Ejemplo de ejecución completo:
+
+__python Genlattice5.py 100000 80000000 120000000 0.4 10 50 50000 --output_dir data/lattices/ --use_pickle True --plot_lattice True__
 
 ## Processing_data.py
 
@@ -116,6 +143,22 @@ Descripción: Guarda los datasets procesados en formato .npy además del formato
 Valor por defecto: False
 
 Ejemplo: --save_numpy True
+
+Caracterísicas adicionales:
+
+input_dir: Carpeta que contiene los archivos de datos originales (por ejemplo, lattices generados con Genlattice5.py).
+
+output_dir: Carpeta donde se guardarán los datos procesados y escalados (por defecto: data/processed/).
+
+train_frac: Fracción de datos que se asignará al conjunto de entrenamiento (por defecto: 0.8).
+
+val_frac: Fracción de datos que se asignará al conjunto de validación (por defecto: 0.2).
+
+scale_method: Método de escalado para normalizar los valores del dataset (minmax o standard; por defecto: minmax).
+
+--shuffle: Si se deben mezclar los datos antes de realizar los splits (por defecto: True).
+
+--save_numpy: Si se deben guardar los datasets procesados en formato .npy además del formato por defecto (por defecto: False).
 
 Ejemplo de ejecución completo: 
 
@@ -177,7 +220,7 @@ Descripción: Número de épocas de entrenamiento del decoder.
 
 Valor por defecto: 301
 
-Características adicionales
+Características adicionales:
 
 Guarda el mejor modelo en best_decoder_dual.pth según el MSE promedio.
 
