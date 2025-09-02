@@ -1,6 +1,6 @@
-# Guide of use
-This is a direct representation of the full pipeline.
-The execution order would be the following: 
+# Guía de uso
+Representación completa de uso del pipeline.
+El orden de ejecución es el siguiente: 
 
 1. genlattice5.py
 2. processing_data.py  
@@ -10,3 +10,117 @@ The execution order would be the following:
 6. train_zmodulator.py
 7. generate_lattice_from_z.py
 8. FEM_validator.py
+
+
+## Genlattice5.py
+Script que se ocupa de la generación de lattices, además de otras funcionalidades: 
+
+__python genlattice5.py [num_samples] [min_e_eq] [max_e_eq] [cpu_fraction] [min_nodes] [max_nodes] [update_batch] [--output_dir DIR] [--use_pickle BOOL] 
+[--plot_lattice BOOL]__
+
+__1. num_samples (opcional)__
+   
+Descripción: Número de ejemplos a generar
+
+Valor por defecto: 50000
+
+__2. min_e_eq (opcional)__
+   
+Descripción: Límite inferior para el módulo de Young equivalente
+
+Valor por defecto: 80000000.00
+
+__3. max_e_eq (opcional)__
+
+Descripción: Límite superior para el módulo de Young equivalente
+
+Valor por defecto: 120000000.00
+
+__4. cpu_fraction (opcional)__
+
+Descripción: Fracción de potencia de CPU utilizada (0.0 a 1.0)
+
+Valor por defecto: 0.4
+
+__5. min_nodes (opcional)__
+
+Descripción: Número mínimo de nodos por lattice
+
+Valor por defecto: 10
+
+__6. max_nodes (opcional)__
+ 
+Descripción: Número máximo de nodos por lattice
+
+Valor por defecto: 50
+
+__7. update_batch (opcional)__
+Descripción: Número de lattices guardados en cada operación de escritura
+
+Valor por defecto: 50000
+
+## Processing_data.py
+
+Script que se encarga de la preparación y procesamiento de los datasets generados, incluyendo normalización, escalado y creación de splits para entrenamiento y validación.
+
+__python processing_data.py [input_dir] [output_dir] [train_frac] [val_frac] [scale_method] [--shuffle BOOL] [--save_numpy BOOL]__
+
+__1. input_dir (obligatorio)__
+
+Descripción: Carpeta que contiene los archivos de datos originales (por ejemplo, lattices generados con genlattice5.py).
+
+Valor por defecto: Ninguno (requerido)
+
+Ejemplo (usado en el trabajo): data/raw_lattices/ 
+
+__2. output_dir (opcional)__
+
+Descripción: Carpeta donde se guardarán los datos procesados y escalados.
+
+Valor por defecto: data/processed/
+
+__3. train_frac (opcional)__
+
+Descripción: Fracción de datos que se asignará al conjunto de entrenamiento.
+
+Valor por defecto: 0.8
+
+__4. val_frac (opcional)__
+
+Descripción: Fracción de datos que se asignará al conjunto de validación. El resto se puede usar para test.
+
+Valor por defecto: 0.2
+
+__5. scale_method (opcional)__
+
+Descripción: Método de escalado para normalizar los valores del dataset. Opciones disponibles:
+
+minmax: escala los valores entre 0 y 1.
+
+standard: normaliza los valores con media 0 y desviación estándar 1.
+
+Valor por defecto: minmax
+
+__6. --shuffle (opcional)__
+
+Descripción: Indica si se deben mezclar los datos antes de realizar los splits.
+
+Valor por defecto: True
+
+Ejemplo: --shuffle False
+
+__7. --save_numpy (opcional)__
+
+Descripción: Guarda los datasets procesados en formato .npy además del formato por defecto (por ejemplo, .csv).
+
+Valor por defecto: False
+
+Ejemplo: --save_numpy True
+
+Ejemplo de ejecución completo: 
+
+__python processing_data.py data/raw_lattices/ data/processed/ 0.8 0.2 minmax --shuffle True --save_numpy True__
+
+Recomendación: variar los parámetros en el script y ejecutar solo con __python processing_data.py__
+
+
