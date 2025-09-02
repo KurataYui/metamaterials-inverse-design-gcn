@@ -233,4 +233,178 @@ Ejemplo de ejecución completo:
 
 __python full_decoder_based.py --latent_dim 32 --batch_size 32 --num_epochs 301__
 
+## z_generation.py
 
+Script que entrena un generador de embeddings latentes (ZGenerator) a partir de ruido gaussiano. El generador produce vectores en el espacio latente, que se decodifican mediante un decoder previamente entrenado (best_decoder_dual.pth) para obtener coordenadas de nodos en 3D.
+
+__python z_generation.py [--num_steps N] [--batch_size N]__
+
+__1. --num_steps (opcional)__
+
+Descripción: Número total de pasos de entrenamiento del generador.
+
+Valor por defecto: 1000
+
+__2. --batch_size (opcional)__
+
+Descripción: Número de muestras de ruido generadas por iteración.
+
+Valor por defecto: 64
+
+Características adicionales
+
+El decoder se carga desde best_decoder_dual.pth y permanece congelado durante el entrenamiento.
+
+La función de pérdida penalizalas coordenadas fuera de los límites [0,1] y el colapsos de nodos (coincidencia excesiva en posiciones).
+
+Se guardan imágenes (sample_XXXX.png) cada 50 pasos en la carpeta zgen_training_outputs/.
+
+Se guarda el modelo entrenado como zgen_latest.pth cada 200 pasos.
+
+Ejemplo de ejecución completo
+
+__python z_generation.py --num_steps 1500 --batch_size 128__
+
+z_modulator.py
+
+Script que entrena un ZModulator, encargado de ajustar los vectores latentes generados (z) para que correspondan a un valor deseado de módulo de Young equivalente (E_eq).
+
+Este módulo trabaja junto con:
+
+Decoder (best_decoder_dual.pth) – congelado.
+
+Predictor del encoder (best_encoder_predictor_nopool.pth) – congelado.
+
+## Generador Z preentrenado (zgen_latest.pth).
+
+__python z_modulator.py [--steps N] [--batch_size N]__
+
+__1. --steps (opcional)__
+
+Descripción: Número de pasos de entrenamiento del ZModulator.
+
+Valor por defecto: 1000
+
+__2. --batch_size (opcional)__
+
+Descripción: Número de muestras de ruido generadas en cada paso de entrenamiento.
+
+Valor por defecto: 64
+
+Características adicionales
+
+Entrenamiento supervisado indirecto:
+
+Se generan z iniciales mediante un ZGenerator preentrenado.
+
+El ZModulator ajusta z según un valor objetivo de E_eq en el rango [0,1].
+
+El predictor compara el E_eq predicho con el deseado (loss = MSE).
+
+Normalización de coordenadas: Las coordenadas reconstruidas se escalan a [0.05, 0.7] en cada eje para evitar colapsos en bordes.
+
+Visualización:
+
+Cada 50 pasos guarda un gráfico 3D (generated_XXXX.png) con los nodos reconstruidos y el valor de E_eq objetivo.
+
+Guardado de modelos:
+
+Cada 200 pasos guarda el estado del modulador en zmodulator_latest.pth.
+
+Ejemplo de ejecución completo
+
+__python z_modulator.py --steps 1500 --batch_size 128__
+
+## generate_lattice_from_z.py
+
+Script que genera geometrías de lattices en formato JSON a partir de valores deseados de módulo de Young equivalente (E_eq).
+
+El flujo de trabajo es:
+
+Se genera un vector latente (z) mediante un generador preentrenado.
+
+El ZModulator ajusta z para acercarse al E_eq deseado.
+
+El Decoder reconstruye las coordenadas 3D de los nodos.
+
+Se calculan las conexiones mediante triangulación de Delaunay y se añaden los bordes del cubo.
+
+Se predice el E_eq del lattice generado usando el Predictor.
+
+Se guarda el resultado en un archivo .json.
+
+Uso
+__python generate_lattice_from_z.py --eq_values [E1 E2 ... En]__
+
+Parámetros
+
+__1. --eq_values (obligatorio)__
+
+Descripción: Lista de valores objetivo de módulo de Young equivalente para los que se generarán lattices.
+
+Ejemplo:
+
+--eq_values 0.3 0.5 0.8
+
+Características adicionales
+
+Los modelos cargados (zgen, zmod, decoder, predictor) deben estar previamente entrenados:
+
+zgen_latest.pth (ZGenerator).
+
+zmodulator_latest.pth (ZModulator).
+
+best_decoder_dual.pth (Decoder).
+
+best_encoder_predictor_nopool.pth (Encoder+Predictor).
+
+Las geometrías se escalan a un cubo interior de volumen 0.9x0.9x0.9 para evitar colapsos en los bordes.
+
+Cada lattice se guarda en la carpeta generated_lattices_json/ como un archivo .json con el siguiente formato:
+
+{
+  "nodes": [[x, y, z], ...],
+  "edges": [[i, j], ...],
+  "equivalent_youngs_modulus": valor_predicho,
+  "target_youngs_modulus": valor_objetivo
+}
+
+Ejemplo de ejecución
+__python generate_lattice_from_z.py --eq_values 0.25 0.50 0.75__
+
+
+__python generate_lattice_from_z.py --eq_values 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7__
+
+## FEM_validator.py
+
+Script que valida los lattices generados en formato JSON mediante simulaciones FEM. Calcula el módulo de Young equivalente (E_eq), lo compara con el valor objetivo y guarda los resultados en un archivo CSV.
+
+Uso
+python FEM_validator.py --folder PATH_TO_JSONS
+
+Parámetros
+
+__1. --folder (obligatorio)__
+
+Descripción: Carpeta que contiene los archivos lattice_*.json generados previamente con generate_lattice_from_z.py.
+
+Ejemplo:
+
+--folder generated_lattices_json/
+
+Características adicionales
+
+Lee todos los archivos .json en la carpeta indicada.
+
+Calcula el módulo de Young equivalente (E_eq) mediante LatticeGenerator.compute_equivalent_youngs_modulus().
+
+Escala el valor objetivo (target_youngs_modulus) a las mismas unidades (multiplicando por 163.73e6).
+
+Calcula error absoluto y relativo entre target y computed.
+
+Imprime un resumen en consola con los 5 mejores resultados (menor error relativo).
+
+Guarda todos los resultados en results.csv dentro de la misma carpeta.
+
+Ejemplo de ejecución
+__python FEM_validator.py --folder generated_lattices_json/__
